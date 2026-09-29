@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Nadir</title>
+  <meta name="description" content="Strong companies that just had a bad week, explained simply.">
+  <meta name="theme-color" content="#f5f5f7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%231d1d1f'/%3E%3Cpath d='M14 22c6 0 8 3 11 9s5 11 7 11 4-5 7-11 5-9 11-9' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Apple devices use SF Pro from the system; Inter is only downloaded where SF is missing. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/nadir.css">
+  <link rel="modulepreload" href="js/app.js">
+  <link rel="preload" href="/api/screen?cold" as="fetch" crossorigin="anonymous">
+  <script>
+    try { if (localStorage.getItem('nadir.theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}
+  </script>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-in">
+      <a class="brand" href="#/" aria-label="Nadir home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M14 22c6 0 8 3 11 9s5 11 7 11 4-5 7-11 5-9 11-9"/></svg></span>
+        <span class="brand-name">Nadir</span>
+      </a>
+      <div class="seg" role="tablist" aria-label="View" data-key="view">
+        <button type="button" role="tab" data-v="list">This week</button>
+        <button type="button" role="tab" data-v="all">All</button>
+        <button type="button" role="tab" data-v="watch">Watchlist</button>
+      </div>
+      <div class="nav-tools">
+        <div class="search" role="search">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+          <label class="sr" for="q">Search any company</label>
+          <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Search" role="combobox" aria-controls="q-list" aria-expanded="false" aria-autocomplete="list">
+          <ul id="q-list" class="q-list" role="listbox" hidden></ul>
+        </div>
+        <button class="round" id="theme" type="button" aria-label="Switch to dark mode"><i class="ph ph-moon" aria-hidden="true"></i></button>
+      </div>
+    </div>
+    <div class="progress" id="progress" aria-hidden="true"><span></span></div>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <div class="intro-text">
+        <h1 id="title"><span class="sk-line" style="width:min(520px,80%)"></span></h1>
+        <p class="lead" id="lead"><span class="sk-line" style="width:min(640px,95%)"></span></p>
+      </div>
+      <div class="intro-side">
+        <p class="status" id="status" aria-live="polite"><span class="pulse"></span><span id="status-text">Connecting</span></p>
+        <button type="button" class="pill-btn" id="filters-btn" aria-haspopup="dialog" aria-controls="filters"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i><span id="filters-sum">Filters</span></button>
+      </div>
+    </section>
+
+    <section class="market" id="market" aria-label="Markets this week"></section>
+
+    <section class="grid" id="grid" aria-label="Companies" aria-busy="true"></section>
+    <div class="empty" id="empty" hidden></div>
+
+    <footer class="foot">
+      <details class="how">
+        <summary>How Nadir picks companies</summary>
+        <div class="how-body">
+          <div><h3>A strong record</h3><p>Nadir looks at the three years before this week: how fast the share price grew, how steady that climb was, and how close it was to its high.</p></div>
+          <div><h3>A real stumble</h3><p>Then it measures this week's fall, both in size and against how much the stock normally moves in a week. A 6% drop means more for a calm company than for a jumpy one.</p></div>
+          <div><h3>One score</h3><p>The score needs both. A great company that barely moved scores low, and so does a big drop in a company without a track record.</p></div>
+        </div>
+      </details>
+      <p class="fine">Prices from Yahoo Finance, delayed. Nadir helps you research. It is not investment advice.</p>
+    </footer>
+  </main>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="popover" id="filters" role="dialog" aria-modal="false" aria-label="Filters" hidden>
+    <div class="pop-head"><h2>Filters</h2><button type="button" class="text-btn" id="filters-reset">Reset</button></div>
+    <div class="field">
+      <p class="field-label" id="f-drop">Fell this week by at least</p>
+      <div class="seg seg-wide" role="radiogroup" aria-labelledby="f-drop" data-key="drop">
+        <button type="button" role="radio" data-v="0.03">3%</button>
+        <button type="button" role="radio" data-v="0.05">5%</button>
+        <button type="button" role="radio" data-v="0.08">8%</button>
+        <button type="button" role="radio" data-v="0.12">12%</button>
+      </div>
+    </div>
+    <div class="field">
+      <p class="field-label" id="f-growth">Grew per year, over the three years before</p>
+      <div class="seg seg-wide" role="radiogroup" aria-labelledby="f-growth" data-key="growth">
+        <button type="button" role="radio" data-v="-1">Any</button>
+        <button type="button" role="radio" data-v="0.1">10%</button>
+        <button type="button" role="radio" data-v="0.2">20%</button>
+        <button type="button" role="radio" data-v="0.3">30%</button>
+      </div>
+    </div>
+    <div class="field">
+      <p class="field-label" id="f-region">Region</p>
+      <div class="seg seg-wide" role="radiogroup" aria-labelledby="f-region" data-key="region">
+        <button type="button" role="radio" data-v="ALL">World</button>
+        <button type="button" role="radio" data-v="US">US</button>
+        <button type="button" role="radio" data-v="EU">Europe</button>
+        <button type="button" role="radio" data-v="ASIA">Asia</button>
+      </div>
+    </div>
+    <div class="field two-col">
+      <label><span class="field-label">Sector</span><span class="select"><select id="sector"><option value="ALL">All sectors</option></select><i class="ph ph-caret-up-down" aria-hidden="true"></i></span></label>
+      <label><span class="field-label">Sort by</span><span class="select"><select id="sort">
+        <option value="score">Best match</option>
+        <option value="w1">Biggest fall</option>
+        <option value="z">Most unusual fall</option>
+        <option value="cagr">Strongest record</option>
+        <option value="n">Name</option>
+      </select><i class="ph ph-caret-up-down" aria-hidden="true"></i></span></label>
+    </div>
+    <button type="button" class="done-btn" id="filters-done">Done</button>
+  </div>
+
+  <aside class="sheet" id="sheet" aria-hidden="true" aria-labelledby="s-name" tabindex="-1"></aside>
+  <div class="tip" id="tip" role="tooltip" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

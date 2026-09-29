@@ -1,0 +1,73 @@
+{
+  "title": "Choose the look for Nadir",
+  "question": "Clean, white, card grid with a side panel, as you asked. The roll assigned the Sale Catalogue. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Sale Catalogue",
+      "kicker": "THE ROLL",
+      "lineage": "Auction-house sale catalogues: numbered lots, provenance, condition reports",
+      "thesis": "Each week is a sale: strong companies come up as numbered lots, each with its record and a condition report on the fall.",
+      "palette": ["#ffffff", "#141414", "#6f6f6f", "#e7e7e4", "#c8322a", "#2b5ea7"],
+      "materials": ["bright white coated catalogue stock", "numbered lot plates", "hairline rules"],
+      "viewport": "A slim header naming this week's sale window, then a clean grid of numbered lot cards: lot number, company, the fall, the 3-year record, a one-year line.",
+      "risk": "Catalogue wording turns twee if it goes past lot numbers and section names; the data must stay plain.",
+      "raised": [
+        {"from": "Acetate manual tab board", "raise": "Filter tabs carry their counts, so each section's size reads before you open it."},
+        {"from": "Wall calendar pad", "raise": "The sale date (the five-session window) anchors the page like the date on a catalogue cover."},
+        {"from": "Split-flap concourse board", "raise": "Numbers refresh in place in fixed-width figures; nothing reflows when prices update."},
+        {"from": "Datamatics field", "raise": "Monochrome discipline: black, grey and white carry everything; red is spent only on falls."},
+        {"from": "Sneaker box wall", "raise": "Every lot card shares one identical label grid, so the same number sits in the same spot on every card."}
+      ],
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "header + sale window", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "status strip: what is loading", "x": 0, "y": 1, "w": 12, "h": 1, "accent": true},
+        {"label": "tabs with counts + filters", "x": 0, "y": 2, "w": 12, "h": 1},
+        {"label": "lot 1", "x": 0, "y": 3, "w": 4, "h": 3},
+        {"label": "lot 2", "x": 4, "y": 3, "w": 4, "h": 3},
+        {"label": "lot 3", "x": 8, "y": 3, "w": 4, "h": 3},
+        {"label": "lot 4", "x": 0, "y": 6, "w": 4, "h": 3},
+        {"label": "lot 5", "x": 4, "y": 6, "w": 4, "h": 3},
+        {"label": "lot 6", "x": 8, "y": 6, "w": 4, "h": 3}
+      ]}
+    },
+    {
+      "id": "model-pick",
+      "label": "The Annual Report",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Swiss-grid corporate annual reports",
+      "thesis": "Nadir as an annual report: one big figure per card, a strict grid, one sentence explaining each number.",
+      "palette": ["#ffffff", "#111111", "#8a8a8a", "#1f4fd1", "#d23b2f"],
+      "materials": ["uncoated white", "strict 12-column grid", "grotesk figures"],
+      "viewport": "Header, then a grid of cards led by an oversized percentage, with the company and a single explanatory sentence beneath.",
+      "risk": "The most familiar clean-finance look; tidy, but close to what many dashboards already ship.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "header", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "filters", "x": 0, "y": 1, "w": 12, "h": 1},
+        {"label": "big figure card", "x": 0, "y": 2, "w": 6, "h": 4, "accent": true},
+        {"label": "card", "x": 6, "y": 2, "w": 3, "h": 4},
+        {"label": "card", "x": 9, "y": 2, "w": 3, "h": 4},
+        {"label": "card", "x": 0, "y": 6, "w": 4, "h": 4},
+        {"label": "card", "x": 4, "y": 6, "w": 4, "h": 4},
+        {"label": "card", "x": 8, "y": 6, "w": 4, "h": 4}
+      ]}
+    },
+    {"id": "challenger-acetate", "label": "Acetate Manual Tabs", "verdict": "declined", "lineage": "Boxed-software manuals with coloured tab dividers", "thesis": "Sections as coloured tab boards with clear acetate leaves.", "palette": ["#e0662b", "#f2c230", "#2f8f5b", "#f4f4ef"], "materials": ["acetate", "divider board"], "viewport": "A tab rail down the edge, one saturated board per sector.", "case": "Loses on clarity: full-strength colour boards fight a clean white scan.", "risk": "Loud and heavy for a daily check.", "kept": "Tabs show their counts."},
+    {"id": "challenger-calendar", "label": "Wall Calendar Pad", "verdict": "declined", "lineage": "Printers' advertising calendars", "thesis": "A painted plate above a tear-off date pad.", "palette": ["#b3262a", "#f1e6cf", "#c9a24a"], "materials": ["painted plate", "tear-off pad"], "viewport": "A big illustration over a week pad.", "case": "Loses both: no real imagery to paint, and time is not Nadir's only axis.", "risk": "Nostalgic and decorative.", "kept": "The week window anchors the page."},
+    {"id": "challenger-splitflap", "label": "Split-Flap Board", "verdict": "declined", "lineage": "Rail concourse departure boards", "thesis": "Stocks as departures on a clacking flap board.", "palette": ["#111111", "#ffffff", "#f0a830", "#b8322a"], "materials": ["matte flaps", "brushed steel"], "viewport": "A dark board of rows flipping on update.", "case": "Loses on audience fit: dark board contradicts the white-mode brief.", "risk": "Gimmick once the flip novelty fades.", "kept": "Figures refresh in place without reflow."},
+    {"id": "challenger-datamatics", "label": "Datamatics Field", "verdict": "declined", "lineage": "Ryoji Ikeda data installations", "thesis": "Pure black-and-white data fields and barcodes.", "palette": ["#000000", "#ffffff"], "materials": ["hairline bars", "monospace numerics"], "viewport": "A wall of bars with numbers in the margins.", "case": "Loses on clarity: art, not a tool friends can read.", "risk": "Cold and unreadable for non-quants.", "kept": "Monochrome discipline; red only for falls."},
+    {"id": "challenger-garden", "label": "Gravity-Rain Garden", "verdict": "declined", "lineage": "Surreal impossible worlds", "thesis": "Rain that falls toward coloured clouds.", "palette": ["#5f6f63", "#3a6fd8", "#c8423a", "#111111"], "materials": ["vector rain", "dusk garden"], "viewport": "An illustrated physics garden.", "case": "Loses both: no relationship to investing.", "risk": "Pure whimsy.", "kept": "One dominant column on phones."},
+    {"id": "challenger-sneaker", "label": "Sneaker Box Wall", "verdict": "declined", "lineage": "Sneaker archive box stacks", "thesis": "Stocks as labelled boxes you pull from a wall.", "palette": ["#d9622b", "#111111", "#f7f5f0"], "materials": ["box board", "end labels"], "viewport": "A wall of box ends with labels.", "case": "Loses on audience fit; orange board fights white mode.", "risk": "Themed rather than useful.", "kept": "One identical label grid on every card."}
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "canon": true,
+  "canonCard": {
+    "label": "The broker-app standard",
+    "thesis": "What stock apps ship: white cards, green and red numbers, system font, executed carefully.",
+    "palette": ["#ffffff", "#0f172a", "#16a34a", "#dc2626"],
+    "materials": ["white cards", "system UI font"],
+    "viewport": "A watchlist-style card grid with ticker, price and change.",
+    "risk": "Clean but interchangeable with every broker app."
+  },
+  "steer": true
+}

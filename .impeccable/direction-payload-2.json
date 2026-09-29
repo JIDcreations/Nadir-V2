@@ -1,0 +1,89 @@
+{
+  "title": "Choose the look for Nadir — bolder hand",
+  "question": "Bolder forms, each translated to your white, clean, card-grid brief. The dice put the Signal Bench first. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Signal Bench",
+      "kicker": "THE ROLL",
+      "lineage": "Lab oscilloscopes and their printed screen captures, translated to white",
+      "thesis": "Every stock is a signal: each card is a small scope screen, and a fall is read in divisions of that stock's normal swing.",
+      "palette": ["#fbfbf9", "#121212", "#d9dcd6", "#1d7a4f", "#c63a1f", "#7a7f78"],
+      "materials": ["white scope-capture paper", "etched light-grey graticule", "instrument readouts in fixed-width digits"],
+      "viewport": "A bench header with the trigger controls (fell at least X, grew at least Y), a status strip showing which feeds are still arming, then a grid of scope cards, each trace frozen with the crash window bracketed.",
+      "risk": "If the graticule and readouts get busy, it tips back into the chaos you rejected; the grid must stay faint and the cards spare.",
+      "raised": [
+        {"from": "Airline ticket wallet", "raise": "States stamp themselves in place (earnings, shock, market-wide) instead of adding new UI."},
+        {"from": "HyperCard stack", "raise": "Every card is deep-linkable, and Back retraces exactly where you were."},
+        {"from": "Origami crane sequence", "raise": "The detail panel steps through the fall in numbered stages, one idea each."},
+        {"from": "Camcorder viewfinder", "raise": "Corner brackets snap around the focused card for keyboard navigation."}
+      ],
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "bench header + trigger controls", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "feed status: arming / locked", "x": 0, "y": 1, "w": 12, "h": 1, "accent": true},
+        {"label": "scope card", "x": 0, "y": 2, "w": 4, "h": 4},
+        {"label": "scope card", "x": 4, "y": 2, "w": 4, "h": 4},
+        {"label": "scope card", "x": 8, "y": 2, "w": 4, "h": 4},
+        {"label": "scope card", "x": 0, "y": 6, "w": 4, "h": 4},
+        {"label": "scope card", "x": 4, "y": 6, "w": 4, "h": 4},
+        {"label": "scope card", "x": 8, "y": 6, "w": 4, "h": 4}
+      ]}
+    },
+    {
+      "id": "challenger-ticket",
+      "label": "The Ticket Wallet",
+      "verdict": "competitive",
+      "lineage": "Jet-age airline ticket wallets and coupons",
+      "thesis": "Each fallen stock is a coupon in this week's wallet, with carbon-copy numerals and stamped states.",
+      "palette": ["#ffffff", "#1c2b55", "#c8302b", "#5a3f8c", "#e9e6df"],
+      "materials": ["crisp coupon stock", "carbon numerals", "rubber stamps"],
+      "viewport": "A wallet header with the week, then coupon cards with ruled fields: company, fall, record, and a stamp for the cause.",
+      "case": "Holds clarity and white mode well; loses narrowly on audience fit, since travel is not investing.",
+      "risk": "Reads as a theme if the coupon chrome outweighs the numbers.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "wallet header + week", "x": 0, "y": 0, "w": 12, "h": 2},
+        {"label": "coupon", "x": 0, "y": 2, "w": 6, "h": 2, "accent": true},
+        {"label": "coupon", "x": 6, "y": 2, "w": 6, "h": 2},
+        {"label": "coupon", "x": 0, "y": 4, "w": 6, "h": 2},
+        {"label": "coupon", "x": 6, "y": 4, "w": 6, "h": 2},
+        {"label": "coupon", "x": 0, "y": 6, "w": 6, "h": 2},
+        {"label": "coupon", "x": 6, "y": 6, "w": 6, "h": 2}
+      ]}
+    },
+    {
+      "id": "challenger-hypercard",
+      "label": "The HyperCard Stack",
+      "verdict": "competitive",
+      "lineage": "1987 HyperCard stacks, one-bit black on white",
+      "thesis": "A shoebox of black-and-white cards, one per stock, linked by buttons you can follow and retrace.",
+      "palette": ["#ffffff", "#000000", "#9a9a9a"],
+      "materials": ["one-bit ink", "stipple dither greys", "pixel menus"],
+      "viewport": "A menu bar, then a grid of fixed-proportion cards with painted buttons; opening one flips to its card.",
+      "case": "Strong on white-mode and card clarity; loses on audience fit, as pixel type feels retro rather than clean.",
+      "risk": "Nostalgia can overpower the data; pixel fonts tire the eye.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "menu bar", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "card", "x": 0, "y": 1, "w": 4, "h": 4},
+        {"label": "card", "x": 4, "y": 1, "w": 4, "h": 4, "accent": true},
+        {"label": "card", "x": 8, "y": 1, "w": 4, "h": 4},
+        {"label": "card", "x": 0, "y": 5, "w": 4, "h": 4},
+        {"label": "card", "x": 4, "y": 5, "w": 4, "h": 4},
+        {"label": "card", "x": 8, "y": 5, "w": 4, "h": 4}
+      ]}
+    },
+    {"id": "challenger-origami", "label": "Orizuru Crane", "verdict": "declined", "lineage": "Origami fold sequences", "thesis": "One vermilion sheet folded in 32 numbered steps.", "palette": ["#d8402a", "#f6efe3", "#c9a24a", "#1a1a1a"], "materials": ["washi", "crease lines"], "viewport": "A red folding sheet with numbered steps.", "case": "Loses both: a full red ground fights white mode and says nothing about markets.", "risk": "Pretty but unrelated.", "kept": "Numbered stages in the detail panel."},
+    {"id": "challenger-dive", "label": "Mesophotic Deep Dive", "verdict": "declined", "lineage": "Technical dive profiles", "thesis": "A descent down a reef wall as a depth axis.", "palette": ["#0b2440", "#35c6d6", "#ffffff"], "materials": ["abyssal blue", "marine snow"], "viewport": "A vertical dive profile with depth readouts.", "case": "Loses both: dark blue ground breaks the white brief; depth-as-drawdown is a stretch.", "risk": "Heavy and theatrical.", "kept": "One vertical axis ruling the detail chart."},
+    {"id": "challenger-viewfinder", "label": "Camcorder Viewfinder", "verdict": "declined", "lineage": "Consumer camcorder HUDs", "thesis": "An on-screen display framing live content.", "palette": ["#000000", "#ffffff", "#f2a531"], "materials": ["segmented OSD", "zebra stripes"], "viewport": "Full-bleed frame with corner brackets.", "case": "Loses on clarity: HUD overlays compete with the numbers.", "risk": "Gimmick in daily use.", "kept": "Corner brackets for keyboard focus."}
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "canon": true,
+  "canonCard": {
+    "label": "The broker-app standard",
+    "thesis": "What stock apps ship: white cards, green and red numbers, system font, executed carefully.",
+    "palette": ["#ffffff", "#0f172a", "#16a34a", "#dc2626"],
+    "materials": ["white cards", "system UI font"],
+    "viewport": "A watchlist-style card grid with ticker, price and change.",
+    "risk": "Clean but interchangeable with every broker app."
+  },
+  "steer": true
+}

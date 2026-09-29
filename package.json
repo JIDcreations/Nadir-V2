@@ -1,0 +1,13 @@
+{
+  "name": "nadir",
+  "version": "2.0.0",
+  "description": "Good companies, bad weeks: a daily ledger of proven stocks that just fell hard.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18.17"
+  }
+}
