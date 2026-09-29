@@ -1,0 +1,11 @@
+# Static front end from /public; the data API runs as a Netlify Function.
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+  command = "echo 'No build step'"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"

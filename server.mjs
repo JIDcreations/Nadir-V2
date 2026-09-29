@@ -13,82 +13,14 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { EventEmitter } from 'node:events';
 import { fileURLToPath } from 'node:url';
-import { UNIVERSE, BENCHMARKS, SECTORS, SECTOR_ETF } from './universe.mjs';
-import { analyze, classify, cleanSeries } from './analyze.mjs';
+import { UNIVERSE, SECTORS } from './universe.mjs';
+import { CONCURRENCY, fetchChart, fetchQuotes, pool, buildRow, benchRow, benchList, BENCH_SYMBOLS, intraday, news, search, fetchLogo } from './core.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(ROOT, 'public');
 const CACHE_FILE = path.join(ROOT, 'cache', 'store.json');
 const PORT = Number(process.env.PORT) || 5178;
 const TTL = 10 * 60_000;          // full-universe refresh interval
-const CONCURRENCY = 16;
-const UA = 'Mozilla/5.0'; // Yahoo rate-limits full browser UA strings from non-browser clients
-
-// ─── Yahoo client ─────────────────────────────────────────────────────────────
-
-let auth = null; // { cookie, crumb, at } — only needed for the batch quote endpoint
-
-async function yget(pathAndQuery, { timeout = 8000, withCrumb = false } = {}) {
-  let q = pathAndQuery;
-  const headers = { 'User-Agent': UA, Accept: 'application/json' };
-  if (withCrumb) {
-    if (!auth) throw new Error('no crumb');
-    headers.Cookie = auth.cookie;
-    q += (q.includes('?') ? '&' : '?') + 'crumb=' + encodeURIComponent(auth.crumb);
-  }
-  let lastErr;
-  for (const host of ['query1', 'query2']) {
-    try {
-      const res = await fetch(`https://${host}.finance.yahoo.com${q}`, { headers, signal: AbortSignal.timeout(timeout) });
-      if (res.ok) return await res.json();
-      lastErr = new Error(`HTTP ${res.status}`);
-      if (res.status === 404) break;
-    } catch (e) { lastErr = e; }
-  }
-  throw lastErr;
-}
-
-async function ensureCrumb() {
-  if (auth && Date.now() - auth.at < 6 * 3600_000) return auth;
-  const r1 = await fetch('https://fc.yahoo.com/', { headers: { 'User-Agent': UA }, redirect: 'manual', signal: AbortSignal.timeout(5000) });
-  const setCookies = r1.headers.getSetCookie?.() ?? [r1.headers.get('set-cookie')].filter(Boolean);
-  const cookie = setCookies.map(c => c.split(';')[0]).join('; ');
-  const r2 = await fetch('https://query2.finance.yahoo.com/v1/test/getcrumb', { headers: { 'User-Agent': UA, Cookie: cookie }, signal: AbortSignal.timeout(5000) });
-  const crumb = (await r2.text()).trim();
-  if (!r2.ok || !crumb || crumb.length > 24 || crumb.includes('<')) throw new Error('crumb refused');
-  auth = { cookie, crumb, at: Date.now() };
-  return auth;
-}
-
-async function fetchChart(sym, range = '5y', interval = '1d') {
-  const j = await yget(`/v8/finance/chart/${encodeURIComponent(sym)}?range=${range}&interval=${interval}&includePrePost=false`);
-  const r = j?.chart?.result?.[0];
-  if (!r) throw new Error(j?.chart?.error?.description || 'no data');
-  return r;
-}
-
-// Batch quotes add market cap, P/E, earnings date and analyst view. Optional:
-// if Yahoo refuses the crumb, Nadir still works on price data alone.
-async function fetchQuotes(symbols) {
-  const out = {};
-  try { await ensureCrumb(); } catch { return out; }
-  for (let i = 0; i < symbols.length; i += 60) {
-    const chunk = symbols.slice(i, i + 60);
-    try {
-      const j = await yget(`/v7/finance/quote?symbols=${chunk.map(encodeURIComponent).join(',')}`, { withCrumb: true });
-      for (const q of j?.quoteResponse?.result ?? []) out[q.symbol] = q;
-    } catch { /* enrichment is best-effort */ }
-  }
-  return out;
-}
-
-async function pool(items, n, fn) {
-  const queue = [...items];
-  await Promise.all(Array.from({ length: Math.min(n, queue.length) }, async () => {
-    while (queue.length) { const it = queue.shift(); try { await fn(it); } catch { /* one bad ticker never sinks the batch */ } }
-  }));
-}
-
 // ─── Store ───────────────────────────────────────────────────────────────────
 
 const store = new Map();   // symbol → { row, series, at }
@@ -98,62 +30,25 @@ let refreshing = null;
 const bus = new EventEmitter();
 bus.setMaxListeners(200);
 
-const regionOf = s => /\.(AS|PA|DE|BR|L|SW|CO|MI|MC|ST|HE|OL|LS|VI|IR)$/.test(s) ? 'EU' : /\.(T|HK|KS|KQ|TW|SS|SZ|SI|AX|NS|BO)$/.test(s) ? 'ASIA' : 'US';
-const MARKET_FOR = { US: '^GSPC', EU: '^STOXX50E', ASIA: '^N225' };
-
-function buildRow(u, result, quote) {
-  const series = cleanSeries(result);
-  const meta = result.meta ?? {};
-  const a = analyze(series, { earningsTs: quote?.earningsTimestamp ?? null });
-  if (!a) return null;
-  const reg = u.reg ?? regionOf(u.s);
-  const marketW1 = bench[MARKET_FOR[reg]]?.w1 ?? null;
-  const sectorW1 = u.sec && SECTOR_ETF[u.sec] ? bench[SECTOR_ETF[u.sec]]?.w1 ?? null : null;
-  const row = {
-    s: u.s,
-    n: u.n || quote?.longName || meta.longName || meta.shortName || u.s,
-    sec: u.sec || 'OTHER', reg,
-    cur: meta.currency || quote?.currency || 'USD',
-    exch: quote?.fullExchangeName || meta.fullExchangeName || meta.exchangeName || '',
-    mcap: quote?.marketCap ?? null,
-    pe: quote?.trailingPE ?? null,
-    fpe: quote?.forwardPE ?? null,
-    rating: quote?.averageAnalystRating ?? null,
-    ...a,
-    marketW1, sectorW1,
-    cause: classify(a, marketW1, sectorW1),
-  };
-  delete row.prec;
-  return { row, series, full: a };
-}
-
 async function loadStock(u, quote) {
   const result = await fetchChart(u.s);
-  const built = buildRow(u, result, quote);
+  const built = buildRow(u, result, quote, bench);
   if (!built) return null;
-  store.set(u.s, { row: built.row, series: built.series, prec: built.full.prec, at: Date.now() });
+  store.set(u.s, { row: built.row, series: built.series, prec: built.prec, at: Date.now() });
   return built.row;
 }
 
 async function loadBench(s) {
-  const result = await fetchChart(s, '1y', '1d');
-  const { c } = cleanSeries(result);
-  const n = c.length;
-  if (n < 10) return;
-  const name = BENCHMARKS.find(b => b.s === s)?.n ?? s;
-  bench[s] = {
-    s, n: name, px: c[n - 1], d1: c[n - 1] / c[n - 2] - 1, w1: c[n - 1] / c[n - 6] - 1,
-    spark: c.slice(-60).map(x => Number(x.toPrecision(5))),
-  };
+  const b = await benchRow(s);
+  if (b) bench[s] = b;
 }
 
 function refreshAll() {
   if (refreshing) return refreshing;
   const t0 = Date.now();
   refreshing = (async () => {
-    const benchSyms = [...BENCHMARKS.map(b => b.s), ...new Set(Object.values(SECTOR_ETF))];
     const [, quotes] = await Promise.all([
-      pool(benchSyms, CONCURRENCY, loadBench),
+      pool(BENCH_SYMBOLS, CONCURRENCY, loadBench),
       fetchQuotes(UNIVERSE.map(u => u.s)),
     ]);
     bus.emit('bench', benchOut());
@@ -170,8 +65,7 @@ function refreshAll() {
   return refreshing;
 }
 
-const benchOut = () => BENCHMARKS.map(b => bench[b.s]).filter(Boolean)
-  .concat(Object.entries(SECTOR_ETF).map(([sec, s]) => bench[s] && { ...bench[s], sec }).filter(Boolean));
+const benchOut = () => benchList(bench);
 
 async function saveDisk() {
   await mkdir(path.dirname(CACHE_FILE), { recursive: true });
@@ -289,25 +183,12 @@ async function stockEntry(sym) {
 
 // Company logos: fetched once from public logo CDNs, cached on disk, served same-origin.
 const LOGO_DIR = path.join(ROOT, 'cache', 'logos');
-const LOGO_SOURCES = [
-  s => `https://financialmodelingprep.com/image-stock/${encodeURIComponent(s)}.png`,
-  s => `https://assets.parqet.com/logos/symbol/${encodeURIComponent(s)}?format=png`,
-];
 async function logo(sym) {
   const file = path.join(LOGO_DIR, sym.replace(/[^A-Z0-9.\-]/gi, '_') + '.png');
   try { return await readFile(file); } catch { /* not cached yet */ }
-  for (const src of LOGO_SOURCES) {
-    try {
-      const res = await fetch(src(sym), { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(5000) });
-      if (!res.ok || !/image/.test(res.headers.get('content-type') || '')) continue;
-      const buf = Buffer.from(await res.arrayBuffer());
-      if (buf.length < 200) continue;
-      await mkdir(LOGO_DIR, { recursive: true });
-      await writeFile(file, buf);
-      return buf;
-    } catch { /* try the next source */ }
-  }
-  return null;
+  const buf = await fetchLogo(sym);
+  if (buf) { await mkdir(LOGO_DIR, { recursive: true }); await writeFile(file, buf); }
+  return buf;
 }
 
 const routes = [
@@ -331,33 +212,19 @@ const routes = [
   }],
 
   [/^\/api\/intraday\/([^/]+)$/, async (req, res, [, sym]) => {
-    const data = await cached('intra:' + sym, 3 * 60_000, async () => {
-      const r = await fetchChart(sym, '5d', '15m');
-      const { t, c, v } = cleanSeries(r);
-      return { t, c, v, prev: r.meta?.chartPreviousClose ?? null, tz: r.meta?.exchangeTimezoneName ?? null };
-    });
+    const data = await cached('intra:' + sym, 3 * 60_000, () => intraday(sym));
     send(req, res, 200, data);
   }],
 
   [/^\/api\/news\/([^/]+)$/, async (req, res, [, sym]) => {
-    const news = await cached('news:' + sym, 15 * 60_000, async () => {
-      const j = await yget(`/v1/finance/search?q=${encodeURIComponent(sym)}&quotesCount=0&newsCount=14&enableFuzzyQuery=false`);
-      return (j?.news ?? []).map(x => ({
-        title: x.title, publisher: x.publisher, link: x.link, t: x.providerPublishTime,
-        related: x.relatedTickers ?? [],
-      })).sort((a, b) => b.t - a.t);
-    });
-    send(req, res, 200, news);
+    const list = await cached('news:' + sym, 15 * 60_000, () => news(sym));
+    send(req, res, 200, list);
   }],
 
   [/^\/api\/search$/, async (req, res, _m, url) => {
     const q = (url.searchParams.get('q') || '').trim().slice(0, 40);
     if (!q) return send(req, res, 200, []);
-    const list = await cached('search:' + q.toLowerCase(), 3600_000, async () => {
-      const j = await yget(`/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=8&newsCount=0`, { timeout: 5000 });
-      return (j?.quotes ?? []).filter(x => x.symbol && ['EQUITY', 'ETF'].includes(x.quoteType))
-        .map(x => ({ s: x.symbol, n: x.longname || x.shortname || x.symbol, exch: x.exchDisp || x.exchange, type: x.quoteType }));
-    });
+    const list = await cached('search:' + q.toLowerCase(), 3600_000, () => search(q));
     send(req, res, 200, list);
   }],
 ];

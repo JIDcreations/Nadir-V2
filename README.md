@@ -11,6 +11,12 @@ node server.mjs        # or: npm start
 
 Open http://localhost:5178. It needs Node 18.17 or newer and has no dependencies, so there's nothing to install. Set `PORT=8080` to use another port.
 
+## Deploy on Netlify
+
+`netlify.toml` does it all: Netlify serves `public/` and runs the data API as one function (`netlify/functions/api.mjs`) on the same `/api/...` addresses. There is no build step. The function shares its Yahoo code with the local server (`core.mjs`).
+
+Functions keep nothing between visits, so each first load fetches fresh prices (about 1 s to the first company, 2 to 3 s for all). Non-cold responses carry a 5-minute Netlify CDN cache for fast repeat visits.
+
 ## What's in it
 
 - **This week**: a plain-language title ("16 strong companies had a bad week"), a featured top pick, then one card per company with its logo, this week's fall, a six-month chart with the week in red, the likely reason, and its growth per year before the fall.
@@ -46,6 +52,8 @@ All long-term figures are frozen at the close *before* the last five sessions.
 |---|---|
 | `server.mjs` | HTTP server, Yahoo client, caching, NDJSON streaming |
 | `analyze.mjs` | All the maths: returns, σ, trend fit, score, precedents, cause label |
+| `core.mjs` | Yahoo client and row building, shared by the server and the Netlify function |
+| `netlify/functions/api.mjs` | The same API as a Netlify Function |
 | `universe.mjs` | The followed stocks (US, Europe incl. Brussels, Asia) and benchmarks |
 | `public/` | Front end: `index.html`, `css/nadir.css`, `js/{app,charts,prose,format}.js` |
 
